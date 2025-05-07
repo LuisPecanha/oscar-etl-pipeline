@@ -1,14 +1,9 @@
 import pandas as pd
 import re
 import logging
+from currency import get_exchange_rates
 
-USD_EXCHANGE_RATES = {
-    "$": 1,
-    "us$": 1,
-    "€": 1.08,
-    "£": 1.25,
-    "₤": 0.000558,   # historical Italian lira
-}
+logger = logging.getLogger("etl.transform")
 
 UNIT_MULTIPLIERS = {
     "million": 1_000_000,
@@ -16,15 +11,15 @@ UNIT_MULTIPLIERS = {
     "thousand": 1_000,
 }
 
-logger = logging.getLogger("etl.transform")
 
-def parse_budget_value(value: str) -> int:
+def parse_budget_value(value: str, conversion_rates: dict) -> int:
     """
     Parse a film budget string into a full-integer USD amount.
-    
+
     Args:
         value (str): The budget value string.
-        
+        conversion_rates (dict): A dictionary of currency conversion rates.
+
     Returns:
         int: The budget value in USD.
     """
@@ -40,7 +35,7 @@ def parse_budget_value(value: str) -> int:
     # 2) “or” ⇒ split and recurse, then take min
     if re.search(r"\bor\b", s):
         parts = re.split(r"\bor\b", s)
-        vals = [parse_budget_value(p) for p in parts]
+        vals = [parse_budget_value(p, conversion_rates) for p in parts]
         vals = [v for v in vals if v > 0]
         return int(min(vals)) if vals else 0
 
@@ -56,7 +51,7 @@ def parse_budget_value(value: str) -> int:
         um = re.search(r"(million|billion|thousand)", s, flags=re.IGNORECASE)
         unit = um.group(0).lower() if um else None
         unit_mul = UNIT_MULTIPLIERS.get(unit, 1)
-        fx = USD_EXCHANGE_RATES.get((sym or "$").lower(), 0)
+        fx = conversion_rates.get((sym or "$").lower(), 0)
         return int(amount * unit_mul * fx)
 
     # 4) otherwise find all (currency, number, unit) and sum
@@ -66,33 +61,41 @@ def parse_budget_value(value: str) -> int:
     for sym, num, unit in matches:
         amt = float(num.replace(",", ""))
         unit_mul = UNIT_MULTIPLIERS.get(unit.lower() if unit else None, 1)
-        fx = USD_EXCHANGE_RATES.get((sym or "$").lower(), 0)
+        fx = conversion_rates.get((sym or "$").lower(), 0)
         total += amt * unit_mul * fx
 
     return int(total)
-    
+
+
 def clean_budget_column(df: pd.DataFrame) -> pd.DataFrame:
     """
     Clean the budget column in the DataFrame.
-    
+
     Args:
         df (pd.DataFrame): The DataFrame containing the budget column.
-        
+
     Returns:
         pd.DataFrame: The DataFrame with the cleaned budget column.
     """
-    df["budget_cleaned"] = df["budget"].apply(parse_budget_value)
+    logger.info("Processing budget column...")
+    usd_exchange_rates = get_exchange_rates()
+
+    df["budget_cleaned"] = df["budget"].apply(
+        lambda v: parse_budget_value(v, usd_exchange_rates)
+    )
     return df
+
 
 def clean_year_column(df: pd.DataFrame) -> pd.DataFrame:
     """
     Clean the year column in the DataFrame.
-    
+
     Args:
         df (pd.DataFrame): The DataFrame containing the year column.
-        
+
     Returns:
         pd.DataFrame: The DataFrame with the cleaned year column.
     """
+    logger.info("Processing year column...")
     df["year"] = df["year"].astype(str).str.extract(r"(\d{4})").astype("Int64")
     return df

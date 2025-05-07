@@ -79,7 +79,7 @@ def extract_awards_data() -> pd.DataFrame:
 
 def fetch_detail(detail_url: str) -> dict:
     """
-    etch film details from the given URL, with retries/backoff
+    Fetch film details from the given URL, with retries/backoff
 
     Args:
         detail_url (str): The URL to fetch film details from.
@@ -123,15 +123,17 @@ def enrich_with_film_details(df: pd.DataFrame, max_workers: int = 20) -> pd.Data
     results = []
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        future_to_url = {executor.submit(fetch_detail, url): url for url in urls}
-
-        for future in tqdm(
-            as_completed(future_to_url), total=len(urls), desc="Fetching details"
-        ):
-            results.append(future.result())
+        results = list(
+            tqdm(
+                executor.map(fetch_detail, urls),
+                total=len(urls),
+                desc="Fetching film details",
+                unit="film",
+            )
+        )
 
     detail_df = pd.DataFrame(results)
-    df = df.drop(columns=["detail_url"])
-    return pd.concat(
-        [df.reset_index(drop=True), detail_df.reset_index(drop=True)], axis=1
-    )
+    df = df.drop(columns=["detail_url"]).reset_index(drop=True)
+    detail_df = detail_df.reset_index(drop=True)
+
+    return pd.concat([df, detail_df], axis=1)
