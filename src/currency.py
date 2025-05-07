@@ -43,7 +43,6 @@ def get_exchange_rates(base_currency: str = "USD") -> dict:
         resp = SESSION.get(url, timeout=5)
         resp.raise_for_status()
         data = resp.json()
-        logger.info(f"Response from Frankfurter.app: {data}")
         rates_json = data.get("rates", {})
 
         rates = {}
@@ -64,8 +63,6 @@ def get_exchange_rates(base_currency: str = "USD") -> dict:
                 logger.warning(
                     f"Frankfurter.app returned invalid rate for {code} ({api_rate}); using fall-back rate."
                 )
-
-        logger.info(f"{rates}")
 
         return rates
 
