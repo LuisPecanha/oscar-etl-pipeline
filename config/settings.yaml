@@ -1,2 +1,2 @@
-api_base_url: "https://oscars.yipitdata.com/movies"
+api_base_url: "http://oscars.yipitdata.com/"
 output_dir: "data/processed"

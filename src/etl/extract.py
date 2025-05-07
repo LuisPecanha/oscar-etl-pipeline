@@ -2,14 +2,22 @@ import os
 import yaml
 import requests
 import pandas as pd
+import logging
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import quote, unquote
+from requests.exceptions import (
+    HTTPError,
+    Timeout,
+    ConnectionError,
+    RequestException,
+)
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
 }
 
+logger = logging.getLogger("etl.extract")
 
 def load_settings():
     """
@@ -37,6 +45,7 @@ def fetch_oscar_data() -> pd.DataFrame:
     """
     Fetch the Oscar data from the API.
     """
+    logger.debug("Fetching Oscar data from API...")    
     config = load_settings()
     base_url = config["api_base_url"]
 
@@ -72,14 +81,17 @@ def fetch_detail(detail_url: str) -> dict:
         response.raise_for_status()
         return response.json()
     except requests.HTTPError as e:
-        if e.response.status_code == 403:
-            print(f"403 Forbidden - Possibly malformed URL {detail_url}")
-        else:
-            print(f"HTTP error {e.response.status_code} for URL {detail_url}")
-        return {}
-    except Exception as e:
-        print(f"General error fetching {detail_url}: {e}")
-        return {}
+        code = e.response.status_code
+        logger.warning(f"HTTP error {code} for URL {detail_url}")
+    except Timeout:
+        logger.warning(f"Timeout error for URL {detail_url}")
+    except ConnectionError:
+        logger.warning(f"Connection error for URL {detail_url}")
+    except RequestException as e:
+        logger.warning(f"Request error {e} for URL {detail_url}")
+    except ValueError as e:
+        logger.warning(f"Value error {e} for URL {detail_url}")
+    return {}
 
 
 def enrich_film_data(df: pd.DataFrame, max_workers: int = 20) -> pd.DataFrame:
