@@ -1,5 +1,8 @@
+from pathlib import Path
 from pydantic import BaseModel
 import yaml
+
+PROJECT_ROOT = Path(__file__).parent.parent
 
 
 class Settings(BaseModel):
@@ -7,7 +10,12 @@ class Settings(BaseModel):
     output_dir: str
 
 
-def load_config(path="config/settings.yaml") -> Settings:
-    with open(path, "r") as f:
-        config = yaml.safe_load(f)
-    return Settings(**config)
+def load_settings(cfg_path: Path | None = None) -> Settings:
+    """
+    Load settings.yaml (defaults to PROJECT_ROOT/config/settings.yaml)
+    """
+    if cfg_path is None:
+        cfg_path = PROJECT_ROOT / "config" / "settings.yaml"
+    with cfg_path.open("r") as f:
+        data = yaml.safe_load(f)
+    return Settings(**data)

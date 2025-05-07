@@ -6,6 +6,8 @@ import logging
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import quote, unquote
+from http_client import SESSION
+from config import load_settings
 from requests.exceptions import (
     HTTPError,
     Timeout,
@@ -13,18 +15,7 @@ from requests.exceptions import (
     RequestException,
 )
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
-}
-
 logger = logging.getLogger("etl.extract")
-
-def load_settings():
-    """
-    Load the settings file.
-    """
-    with open(os.path.join("../config", "settings.yaml")) as file:
-        return yaml.safe_load(file)
 
 
 def clean_url(url: str) -> str:
@@ -45,13 +36,29 @@ def fetch_oscar_data() -> pd.DataFrame:
     """
     Fetch the Oscar data from the API.
     """
-    logger.debug("Fetching Oscar data from API...")    
+    logger.debug("Fetching Oscar data from API...")
     config = load_settings()
-    base_url = config["api_base_url"]
+    base_url = config.api_base_url
 
-    response = requests.get(base_url)
-    response.raise_for_status()
-    data = response.json()
+    try:
+        resp = SESSION.get(base_url, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+    except HTTPError as e:
+        logger.error(f"HTTP error {e} for URL {base_url}")
+        return pd.DataFrame()
+    except Timeout:
+        logger.error(f"Timeout error for URL {base_url}")
+        return pd.DataFrame()
+    except ConnectionError:
+        logger.error(f"Connection error for URL {base_url}")
+        return pd.DataFrame()
+    except RequestException as e:
+        logger.error(f"Request error for URL {base_url}")
+        return pd.DataFrame()
+    except ValueError as e:
+        logger.error(f"Invalid JSON for URL {base_url}")
+        return pd.DataFrame()
 
     records = []
     for entry in data["results"]:
@@ -67,7 +74,7 @@ def fetch_oscar_data() -> pd.DataFrame:
 
 def fetch_detail(detail_url: str) -> dict:
     """
-    Fetch film details from the given URL.
+    etch film details from the given URL, with retries/backoff
 
     Args:
         detail_url (str): The URL to fetch film details from.
@@ -75,9 +82,9 @@ def fetch_detail(detail_url: str) -> dict:
     Returns:
         dict: The film details.
     """
+    cleaned_url = clean_url(detail_url)
     try:
-        cleaned_url = clean_url(detail_url)
-        response = requests.get(cleaned_url, headers=HEADERS, timeout=10)
+        response = SESSION.get(cleaned_url, timeout=10)
         response.raise_for_status()
         return response.json()
     except requests.HTTPError as e:
