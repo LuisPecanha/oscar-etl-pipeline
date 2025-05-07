@@ -1,5 +1,7 @@
 import requests
 import logging
+from http_client import SESSION
+from functools import lru_cache
 
 logger = logging.getLogger("etl.currency")
 
@@ -22,22 +24,36 @@ SYMBOL_TO_CODE = {
 }
 
 
+@lru_cache(maxsize=1)
 def get_exchange_rates(base_currency: str = "USD") -> dict:
     """
-    Fetch live conversion rates from Frankfurter.app (no API key required).
+    Fetch live conversion rates from Frankfurter.app (no API key needed).
     Falls back to USD_EXCHANGE_RATES on any error.
     Returns a dict mapping currency symbols (e.g. '€', '£') to USD-per-unit.
+    The result is cached so you only hit the API once per process.
+
+    Args:
+        base_currency (str): The base currency to convert from. Default is 'USD'.
+    Returns:
+        dict: A dictionary mapping currency symbols to their conversion rates.
     """
     url = f"https://api.frankfurter.app/latest?from={base_currency}"
     try:
         logger.info("Fetching rates from Frankfurter.app…")
-        resp = requests.get(url, timeout=5)
+        resp = SESSION.get(url, timeout=5)
         resp.raise_for_status()
         data = resp.json()
+        logger.info(f"Response from Frankfurter.app: {data}")
         rates_json = data.get("rates", {})
 
         rates = {}
         for sym, code in SYMBOL_TO_CODE.items():
+
+            # Default for USD base currency
+            if code.upper() == base_currency.upper():
+                rates[sym] = USD_EXCHANGE_RATES[sym]
+                continue
+
             api_rate = rates_json.get(code)
             if api_rate and api_rate > 0:
                 # Frankfurter: 1 USD = api_rate × CODE
@@ -45,10 +61,18 @@ def get_exchange_rates(base_currency: str = "USD") -> dict:
                 rates[sym] = 1.0 / api_rate
             else:
                 rates[sym] = USD_EXCHANGE_RATES[sym]
+                logger.warning(
+                    f"Frankfurter.app returned invalid rate for {code} ({api_rate}); using fall-back rate."
+                )
 
-        logger.debug(f"Built rates: {rates}")
+        logger.info(f"{rates}")
+
         return rates
 
+    except requests.RequestException as e:
+        logger.error(f"HTTP  error fetching rates: {e}; falling back.")
+    except ValueError as e:
+        logger.error(f"Error parsing JSON: {e}; falling back.")
     except Exception as e:
-        logger.warning(f"Frankfurter.app failed ({e}); falling back.")
+        logger.error(f"Unexpected error in get_exchange_rates: {e}; falling back.")
         return USD_EXCHANGE_RATES.copy()
