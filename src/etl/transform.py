@@ -41,19 +41,19 @@ def parse_budget_value(value: str, conversion_rates: dict) -> int:
             return int(min(vals)) if vals else 0
 
         # 3) range (e.g. “16.5-18 million”) ⇒ take lower bound
-        if re.search(r"[\d,.]+\s*[–-]\s*[\d,.]+", s):
-            lower = re.split(r"[\u2013\u2014\-]", s, maxsplit=1)[0].strip()
-            m = re.match(r"(us\$|\$|€|£|₤)?\s*([\d.]+)", lower, flags=re.IGNORECASE)
-            if not m:
-                return 0
-            sym, num = m.groups()
-            amount = float(num)
-            # grab the unit from the full string
-            um = re.search(r"(million|billion|thousand)", s, flags=re.IGNORECASE)
-            unit = um.group(0).lower() if um else None
-            unit_mul = UNIT_MULTIPLIERS.get(unit, 1)
-            fx = conversion_rates.get((sym or "$").lower(), 0)
-            return int(amount * unit_mul * fx)
+        if "–" in s or "-" in s:
+            left = re.split(r"[–-]", s, maxsplit=1)[0].strip()
+            m = re.match(
+                r"(us\$|\$|€|£|₤)?\s*([\d,]+(?:\.\d+)?)", left, flags=re.IGNORECASE
+            )
+            if m:
+                sym, num = m.groups()
+                amount = float(num.replace(",", ""))
+                um = re.search(r"(million|billion|thousand)", s, flags=re.IGNORECASE)
+                unit = um.group(1).lower() if um else None
+                unit_mul = UNIT_MULTIPLIERS.get(unit, 1)
+                fx = conversion_rates.get((sym or "$").lower(), 0)
+                return int(amount * unit_mul * fx)
 
         # 4) otherwise find all (currency, number, unit) and sum
         pattern = r"(us\$|\$|€|£|₤)?\s*([\d,]+(?:\.\d+)?)\s*(million|billion|thousand)?"
@@ -66,7 +66,7 @@ def parse_budget_value(value: str, conversion_rates: dict) -> int:
             total += amt * unit_mul * fx
 
         return int(total)
-    
+
     except Exception as e:
         logger.warning(f"Failed to parse value '{value}': {e}")
         return 0
