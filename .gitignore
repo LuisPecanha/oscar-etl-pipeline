@@ -1,0 +1,20 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# VSCode or JetBrains
+.vscode/
+.idea/
+
+# Environment files
+.env
+
+# Docker
+*.log
+*.pid
+*.seed
+
+
+target/
+dbt_packages/

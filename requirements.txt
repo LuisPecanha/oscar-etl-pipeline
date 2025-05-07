@@ -1,0 +1,15 @@
+# Core
+requests
+pandas
+pydantic
+pyyaml
+pyarrow
+
+# Data validation
+# great_expectations
+
+# Testing
+pytest
+
+# Dev Tools
+ipython

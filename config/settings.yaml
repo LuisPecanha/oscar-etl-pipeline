@@ -1,0 +1,2 @@
+api_base_url: "https://oscars.yipitdata.com/movies"
+output_dir: "data/processed"
