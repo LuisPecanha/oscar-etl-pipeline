@@ -1,5 +1,5 @@
 from logging_config import setup_logging
-from etl.extract import fetch_oscar_data, enrich_film_data
+from etl.extract import extract_awards_data, enrich_with_film_details
 import logging
 
 
@@ -13,10 +13,10 @@ def execute():
     logger.info("Starting ETL process...")
 
     # Extract
-    df = fetch_oscar_data()
+    df = extract_awards_data()
 
     # Enrich film data with details
-    df_full = enrich_film_data(df)
+    df_full = enrich_with_film_details(df)
 
     #print(df_full)
 

@@ -32,7 +32,7 @@ def clean_url(url: str) -> str:
     return quote(decoded, safe=":/()_")
 
 
-def fetch_oscar_data() -> pd.DataFrame:
+def extract_awards_data() -> pd.DataFrame:
     """
     Fetch the Oscar data from the API.
     """
@@ -101,7 +101,7 @@ def fetch_detail(detail_url: str) -> dict:
     return {}
 
 
-def enrich_film_data(df: pd.DataFrame, max_workers: int = 20) -> pd.DataFrame:
+def enrich_with_film_details(df: pd.DataFrame, max_workers: int = 20) -> pd.DataFrame:
     """
     Enrich the film data with details from the API.
     Args:
