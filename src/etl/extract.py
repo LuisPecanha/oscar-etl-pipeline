@@ -64,8 +64,13 @@ def extract_awards_data() -> pd.DataFrame:
     for entry in data["results"]:
         year = entry["year"]
         for film in entry["films"]:
-            film_data = film.copy()
-            film_data["year"] = year
+            film_data = {
+                "film": film.get("Film"),
+                "year": year,
+                "wikipedia_url": film.get("Wiki URL"),
+                "oscar_winner": film.get("Winner"),
+                "detail_url": film.get("Detail URL"),
+            }
             records.append(film_data)
 
     df = pd.DataFrame(records)
@@ -86,7 +91,8 @@ def fetch_detail(detail_url: str) -> dict:
     try:
         response = SESSION.get(cleaned_url, timeout=10)
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        return {"budget": data.get("Budget")}
     except requests.HTTPError as e:
         code = e.response.status_code
         logger.warning(f"HTTP error {code} for URL {detail_url}")
@@ -98,20 +104,22 @@ def fetch_detail(detail_url: str) -> dict:
         logger.warning(f"Request error {e} for URL {detail_url}")
     except ValueError as e:
         logger.warning(f"Value error {e} for URL {detail_url}")
-    return {}
+    return {"budget": None}
 
 
 def enrich_with_film_details(df: pd.DataFrame, max_workers: int = 20) -> pd.DataFrame:
     """
     Enrich the film data with details from the API.
+
     Args:
         df (pd.DataFrame): The DataFrame containing film data.
         max_workers (int): The maximum number of threads to use for fetching details.
+
     Returns:
         pd.DataFrame: The enriched DataFrame with film details.
     """
 
-    urls = df["Detail URL"].tolist()
+    urls = df["detail_url"].tolist()
     results = []
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -123,6 +131,7 @@ def enrich_with_film_details(df: pd.DataFrame, max_workers: int = 20) -> pd.Data
             results.append(future.result())
 
     detail_df = pd.DataFrame(results)
+    df = df.drop(columns=["detail_url"])
     return pd.concat(
         [df.reset_index(drop=True), detail_df.reset_index(drop=True)], axis=1
     )
