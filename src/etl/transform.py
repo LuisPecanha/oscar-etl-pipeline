@@ -85,9 +85,10 @@ def clean_budget_column(df: pd.DataFrame) -> pd.DataFrame:
     logger.info("Processing budget column...")
     usd_exchange_rates = get_exchange_rates()
 
-    df["budget_cleaned"] = df["budget"].apply(
+    df["budget_usd"] = df["budget"].apply(
         lambda v: parse_budget_value(v, usd_exchange_rates)
     )
+    df = df.rename(columns={"budget": "budget_raw"})
     return df
 
 
