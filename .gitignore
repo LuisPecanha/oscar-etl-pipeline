@@ -11,6 +11,7 @@ __pycache__/
 .env
 logs/*
 data/*
+!data/processed/
 
 target/
 dbt_packages/
