@@ -17,3 +17,4 @@ data/processed/*
 
 target/
 dbt_packages/
+oscar_etl_exercise.zip
