@@ -32,7 +32,7 @@ def clean_url(url: str) -> str:
     return quote(decoded, safe=":/()_")
 
 
-def extract_awards_data() -> pd.DataFrame:
+def fetch_oscar_data() -> pd.DataFrame:
     """
     Fetch the Oscar data from the API.
     """
@@ -77,15 +77,15 @@ def extract_awards_data() -> pd.DataFrame:
     return df
 
 
-def fetch_detail(detail_url: str) -> dict:
+def fetch_budget(detail_url: str) -> dict:
     """
-    Fetch film details from the given URL, with retries/backoff
+    Fetch the filme budget from the given URL, with retries/backoff
 
     Args:
-        detail_url (str): The URL to fetch film details from.
+        detail_url (str): The URL to fetch film budget from.
 
     Returns:
-        dict: The film details.
+        dict: The film budget.
     """
     cleaned_url = clean_url(detail_url)
     try:
@@ -107,16 +107,16 @@ def fetch_detail(detail_url: str) -> dict:
     return {"budget": None}
 
 
-def enrich_with_film_details(df: pd.DataFrame, max_workers: int = 20) -> pd.DataFrame:
+def enrich_with_film_budget(df: pd.DataFrame, max_workers: int = 20) -> pd.DataFrame:
     """
-    Enrich the film data with details from the API.
+    Enrich the film data with its budget from the API.
 
     Args:
         df (pd.DataFrame): The DataFrame containing film data.
         max_workers (int): The maximum number of threads to use for fetching details.
 
     Returns:
-        pd.DataFrame: The enriched DataFrame with film details.
+        pd.DataFrame: The enriched DataFrame with film budget included.
     """
 
     urls = df["detail_url"].tolist()
@@ -125,7 +125,7 @@ def enrich_with_film_details(df: pd.DataFrame, max_workers: int = 20) -> pd.Data
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         results = list(
             tqdm(
-                executor.map(fetch_detail, urls),
+                executor.map(fetch_budget, urls),
                 total=len(urls),
                 desc="Fetching film details",
                 unit="film",
