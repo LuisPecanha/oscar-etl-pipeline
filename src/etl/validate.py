@@ -25,4 +25,5 @@ def validate_movies(df: pd.DataFrame) -> List[Movie]:
             valid_records.append(record)
         except Exception as e:
             logger.warning(f"[Row {idx}] Validation error: {e}")
-    return valid_records
+    
+    return df
