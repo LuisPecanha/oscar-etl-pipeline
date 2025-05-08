@@ -21,7 +21,6 @@ def setup_logging(
         for h in handlers.values():
             fn = h.get("filename")
             if fn:
-                # resolve relative to project_root
                 log_file = (project_root / fn).resolve()
                 log_file.parent.mkdir(parents=True, exist_ok=True)
                 h["filename"] = str(log_file)

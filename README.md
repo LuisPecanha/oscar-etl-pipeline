@@ -21,7 +21,7 @@ The project follows a layered structure:
 
 1. Build the Docker image:
    ```bash
-   docker build --build-arg HOST_UID=$(id -u) --build-arg HOST_GID=$(id -g) -t oscar-etl .
+   docker build   --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t oscar-etl .
    ```
 
 2. Run the container:
@@ -31,6 +31,7 @@ The project follows a layered structure:
 
 3. The cleaned CSV will be saved to `data/processed/` on your host machine.
 
+Note: This setup was tested and confirmed to work on two Linux environments and one macOS environment.
 ---
 
 ## Key Features

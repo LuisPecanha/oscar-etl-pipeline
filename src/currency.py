@@ -58,7 +58,7 @@ def get_exchange_rates(base_currency: str = "USD") -> dict:
             api_rate = rates_json.get(code)
             if api_rate and api_rate > 0:
                 # Frankfurter: 1 USD = api_rate × CODE
-                # We need: 1 CODE = USD_per_CODE → invert
+                # 1 CODE = USD_per_CODE → invert
                 rates[sym] = 1.0 / api_rate
             else:
                 rates[sym] = USD_EXCHANGE_RATES[sym]
@@ -88,7 +88,7 @@ def get_cpi_rates() -> dict:
         dict: A dictionary mapping years to their CPI values.
     """
     try:
-        root = Path(__file__).resolve().parents[1]  # Adjust based on project layout
+        root = Path(__file__).resolve().parents[1]
         cpi_path = root / "data" / "raw" / "cpi_us.json"
 
         with open(cpi_path, "r") as f:

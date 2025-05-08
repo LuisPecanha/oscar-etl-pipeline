@@ -24,7 +24,7 @@ handlers:
   validate_file:
     class: logging.FileHandler
     level: WARNING
-    formatter: detailed     # now defined above
+    formatter: detailed
     filename: logs/etl_validate_warnings.log
 
 root:
