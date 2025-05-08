@@ -1,38 +1,30 @@
-# Dockerfile
-# Use an official Python base
 FROM python:3.11-slim
 
-# Allow build-time override of host UID/GID
-ARG HOST_UID=1000
-ARG HOST_GID=1000
+ARG USER_ID
+ARG GROUP_ID
 
-# Create group and user with matching IDs
-RUN groupadd --gid ${HOST_GID} appgroup \
-    && useradd --uid ${HOST_UID} --gid appgroup --shell /bin/bash --create-home appuser
+# Install gosu for privilege drop
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gosu \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# Create group if missing, then user with host UID:GID
+RUN getent group ${GROUP_ID} || groupadd -g ${GROUP_ID} appgroup \
+    && useradd -m -u ${USER_ID} -g ${GROUP_ID} -s /bin/bash appuser
+
 WORKDIR /app
 
-# Copy and install dependencies as root
+# Install dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip \
     && pip install -r requirements.txt
 
-# Install gosu for permission management
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gosu && \
-    rm -rf /var/lib/apt/lists/*
+# Copy application code
+COPY . .
 
-# Copy and configure entrypoint script
+# Entrypoint script to fix permissions and drop privileges
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Copy application code and set ownership
-COPY . .
-RUN chown -R appuser:appgroup /app
-
-# Use the entrypoint to manage permissions and drop privileges
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-
-# Default command (will be run as appuser via gosu in entrypoint)
 CMD ["python", "src/main.py"]

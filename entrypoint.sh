@@ -1,12 +1,11 @@
 #!/bin/sh
-# Ensure script exits on error
 set -e
 
-# 1) Create necessary directories if missing
+# ensure mount points exist
 mkdir -p /app/data/processed /app/logs
 
-# 2) Fix ownership to the non-root user
-chown -R appuser:appgroup /app/data/processed /app/logs
+# chown using the numeric UID and GID of appuser
+chown -R "$(id -u appuser)":"$(id -g appuser)" /app/data/processed /app/logs
 
-# 3) Drop privileges and execute the main process as appuser
+# drop privileges and run the main command
 exec gosu appuser "$@"
