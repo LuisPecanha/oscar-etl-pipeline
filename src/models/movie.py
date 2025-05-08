@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, HttpUrl, validator
+from pydantic import BaseModel, Field, HttpUrl, ConfigDict, field_validator
 from typing import Optional
 from datetime import datetime
 
@@ -36,8 +36,9 @@ class Movie(BaseModel):
         description="Budget converted to USD; must be between 0 and 10 billion"
     )
 
-    @validator("film")
-    def validate_film(cls, v: str) -> str:
+    @field_validator("film", mode="before")
+    @classmethod
+    def validate_film_title(cls, v: str) -> str:
         """
         Strip surrounding whitespace and ensure the title is not empty.
 
@@ -48,6 +49,4 @@ class Movie(BaseModel):
             raise ValueError("film cannot be empty or just whitespace.")
         return v.strip()
         
-    class Config:
-        extra = "forbid"
-        validate_by_name = True
+    model_config = ConfigDict(extra="forbid", validate_default=True)
