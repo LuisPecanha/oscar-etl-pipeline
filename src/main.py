@@ -1,10 +1,7 @@
 import logging
-
+from time import perf_counter
 from logging_config import setup_logging
-from etl.extract import extract_awards_data, enrich_with_film_details
-from etl.transform import clean_budget_column, clean_year_column
-from etl.validate import validate_movies
-from etl.load import to_csv
+from etl import extract, transform, validate, load
 
 def execute():
     """
@@ -14,27 +11,26 @@ def execute():
     setup_logging()
     logger = logging.getLogger("etl.main")
     logger.info("Starting ETL pipeline...")
+    t0 = perf_counter()
 
-    # Extract
+    # 1 - Extract data
     logger.info("Extracting data...")
-    df = extract_awards_data()
+    df_raw = extract()
 
-    # Enrich film data with details
-    df_full = enrich_with_film_details(df)
-
-    # Process and clean data
+    # 2 - Process and clean data
     logger.info("Processing data...")
-    df_full = clean_budget_column(df_full)
-    df_full = clean_year_column(df_full)
+    df_clean = transform(df_raw)
 
+    # 3 - Validate data
     logger.info("Validating data...")
-    validated_df = validate_movies(df_full)
+    df_validated = validate(df_clean)
 
-    # Load
+    # 4 - Load data
     logger.info("Loading data...")
-    output_path = to_csv(validated_df)
+    output_path = load(df_validated)
 
     logger.info(f"Pipeline completed. Data saved to {output_path}")
+    logger.info(f"ETL pipeline completed in {perf_counter() - t0:.2f} seconds.")
     
 
 if __name__ == "__main__":
