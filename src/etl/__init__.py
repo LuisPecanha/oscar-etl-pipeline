@@ -4,7 +4,7 @@ import pandas as pd
 from time import perf_counter
 
 from .extract import fetch_oscar_data, enrich_with_film_budget
-from .transform import clean_budget_column, clean_year_column
+from .transform import clean_budget_column, clean_year_column, add_inflation_adjusted_budget
 from .validate import validate_movies
 from .load import to_csv
 
@@ -36,6 +36,7 @@ def transform(df: pd.DataFrame) -> pd.DataFrame:
     start = perf_counter()
     df_cleaned = clean_budget_column(df)
     df_cleaned = clean_year_column(df_cleaned)
+    df_cleaned = add_inflation_adjusted_budget(df_cleaned)
     logger.info(f"Transform stage completed in {perf_counter() - start:.2f} seconds.")
     return df_cleaned
 

@@ -1,7 +1,9 @@
 import requests
 import logging
+import json
 from http_client import SESSION
 from functools import lru_cache
+from pathlib import Path
 
 logger = logging.getLogger("etl.currency")
 
@@ -73,3 +75,34 @@ def get_exchange_rates(base_currency: str = "USD") -> dict:
     except Exception as e:
         logger.error(f"Unexpected error in get_exchange_rates: {e}; falling back.")
         return USD_EXCHANGE_RATES.copy()
+
+
+@lru_cache(maxsize=1)
+def get_cpi_rates() -> dict:
+    """
+    Fetch historical CPI data from local JSON file.
+    Returns a dict mapping years to their CPI values.
+    The result is cached so you only hit the API once per process.
+
+    Returns:
+        dict: A dictionary mapping years to their CPI values.
+    """
+    try:
+        root = Path(__file__).resolve().parents[1]  # Adjust based on project layout
+        cpi_path = root / "data" / "raw" / "cpi_us.json"
+
+        with open(cpi_path, "r") as f:
+            cpi_data = json.load(f)
+
+        # Ensure keys are integers and values are floats
+        return {int(k): float(v) for k, v in cpi_data.items()}
+    
+    except FileNotFoundError:
+        logger.error(f"CPI JSON File not found at expected path.")
+        return {}
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON in CPI file: {e}")
+        return {}
+    except Exception as e:
+        logger.error(f"Unexpected error in loading CPI data: {e}")
+        return {}
