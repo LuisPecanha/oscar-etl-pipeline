@@ -1,6 +1,3 @@
-
-# 📂 README.md
-
 ## Project Summary
 
 This repository contains a complete ETL pipeline that extracts data on Oscar-nominated films (1927–2014), enriches it with additional details, cleans and normalizes key fields (like budgets), and exports the result to a clean CSV. The pipeline is modular, testable, and includes logging and validation.
