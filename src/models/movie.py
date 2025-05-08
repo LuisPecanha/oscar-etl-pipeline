@@ -35,6 +35,12 @@ class Movie(BaseModel):
         le=10_000_000_000,
         description="Budget converted to USD; must be between 0 and 10 billion"
     )
+    budget_updated: int = Field(
+        ...,
+        ge=0,
+        le=10_000_000_000,
+        description="Budget converted to USD and adjusted for inflation; must be between 0 and 10 billion"
+    )
 
     @field_validator("film", mode="before")
     @classmethod
