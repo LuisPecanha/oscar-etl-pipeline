@@ -128,6 +128,16 @@ The `load.py` module includes options for customizing the output location, filen
 
 ---
 
+## Containerization with Docker
+
+To avoid environment-related issues and ensure consistent execution, I containerized the project using Docker. This guarantees reproducibility regardless of the host machine’s Python setup.
+
+I configured the container to run the ETL pipeline directly and added a -u "$(id -u):$(id -g)" flag to the docker run command to prevent permission issues when writing output files to the host system.
+
+This makes the pipeline portable, reliable, and easier to integrate into future automation workflows.
+
+---
+
 ## Closing Thoughts
 
 This project helped me demonstrate the core elements of a modern ETL pipeline:

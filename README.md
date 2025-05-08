@@ -1,3 +1,4 @@
+
 ## Project Summary
 
 This repository contains a complete ETL pipeline that extracts data on Oscar-nominated films (1927–2014), enriches it with additional details, cleans and normalizes key fields (like budgets), and exports the result to a clean CSV. The pipeline is modular, testable, and includes logging and validation.
@@ -12,30 +13,23 @@ The project follows a layered structure:
 - `data/`: Output storage (`raw/` for static resources, `processed/` for results)  
 - `logs/`: Execution and validation logs  
 - `src/`: Main logic organized by module (`etl/`, `models/`, `main.py`)  
-- `tests/`: Unit tests for key components  
-- `venv/`: Isolated environment
+- `tests/`: Unit tests for key components
 
 ---
 
 ## How to Run
 
-1. Create and activate a virtual environment:
+1. Build the Docker image:
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # Windows: venv\Scripts\activate
+   docker build   --build-arg HOST_UID=$(id -u)   --build-arg HOST_GID=$(id -g)   -t oscar-etl .
    ```
 
-2. Install dependencies:
+2. Run the container using your host UID/GID to avoid file permission issues:
    ```bash
-   pip install -r requirements.txt
+   docker run --rm -v "$(pwd)/data/processed:/app/data/processed" oscar-etl
    ```
 
-3. Run the ETL pipeline:
-   ```bash
-   python src/main.py
-   ```
-
-4. Output will be saved under `data/processed/`.
+3. The cleaned CSV will be saved to `data/processed/` on your host machine.
 
 ---
 
@@ -47,6 +41,7 @@ The project follows a layered structure:
 - **Validation**: Pydantic models ensure schema correctness
 - **Testing**: Pytest-based suite for extraction and transformation logic
 - **Logging**: Structured logs for both ETL flow and data validation issues
+- **Dockerized Execution**: Fully reproducible and isolated environment for running the pipeline
 
 ---
 
@@ -68,4 +63,4 @@ Covers:
 
 - `config/settings.yaml`: API URLs and static paths  
 - `config/logging.yaml`: Log format and level  
-- `data/raw/cpi_us.json`: Local CPI values to avoid API exposure 
+- `data/raw/cpi_us.json`: Local CPI values to avoid API exposure  
