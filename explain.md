@@ -1,7 +1,3 @@
-
-# 📖 explain.md
-
-
 ## Project Overview
 
 This project was based on a take-home assignment from YipitData, which required building a web scraping process and ETL pipeline to gather and clean data on Oscar-nominated movies from 1927 to 2014. The core task involved creating a toolkit or library of utility functions that could:
