@@ -1,3 +1,4 @@
+# Dockerfile
 # Use an official Python base
 FROM python:3.11-slim
 
@@ -9,18 +10,29 @@ ARG HOST_GID=1000
 RUN groupadd --gid ${HOST_GID} appgroup \
     && useradd --uid ${HOST_UID} --gid appgroup --shell /bin/bash --create-home appuser
 
-# Install dependencies as root
+# Set working directory
 WORKDIR /app
+
+# Copy and install dependencies as root
 COPY requirements.txt .
 RUN pip install --upgrade pip \
     && pip install -r requirements.txt
 
-# Copy the rest of your code and chown it
+# Install gosu for permission management
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gosu && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy and configure entrypoint script
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Copy application code and set ownership
 COPY . .
 RUN chown -R appuser:appgroup /app
 
-# Switch to the non-root user
-USER appuser
+# Use the entrypoint to manage permissions and drop privileges
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
-# Default command
+# Default command (will be run as appuser via gosu in entrypoint)
 CMD ["python", "src/main.py"]
