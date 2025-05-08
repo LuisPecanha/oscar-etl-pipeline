@@ -3,6 +3,7 @@ from time import perf_counter
 from logging_config import setup_logging
 from etl import extract, transform, validate, load
 
+
 def execute():
     """
     Main function to execute the ETL pipeline.
@@ -31,7 +32,7 @@ def execute():
 
     logger.info(f"Pipeline completed. Data saved to {output_path}")
     logger.info(f"ETL pipeline completed in {perf_counter() - t0:.2f} seconds.")
-    
+
 
 if __name__ == "__main__":
     execute()

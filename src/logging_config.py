@@ -2,6 +2,7 @@ import logging.config
 import yaml
 from pathlib import Path
 
+
 def setup_logging(
     cfg_path: Path | None = None,
     default_level: int = logging.INFO,

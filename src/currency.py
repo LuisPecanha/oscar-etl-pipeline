@@ -96,7 +96,7 @@ def get_cpi_rates() -> dict:
 
         # Ensure keys are integers and values are floats
         return {int(k): float(v) for k, v in cpi_data.items()}
-    
+
     except FileNotFoundError:
         logger.error(f"CPI JSON File not found at expected path.")
         return {}

@@ -6,6 +6,7 @@ from models.movie import Movie
 
 logger = logging.getLogger("etl.validate")
 
+
 def validate_movies(df: pd.DataFrame) -> List[Movie]:
     """
     Validate the transformed movie DataFrame using Pydantic models.
@@ -26,9 +27,6 @@ def validate_movies(df: pd.DataFrame) -> List[Movie]:
             valid_dicts.append(m.dict())
         except ValidationError as e:
             logger.warning(
-                "Row %d failed validation: %s | record=%s",
-                idx,
-                e.errors(),
-                rec
+                "Row %d failed validation: %s | record=%s", idx, e.errors(), rec
             )
     return pd.DataFrame(valid_dicts)

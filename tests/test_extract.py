@@ -2,11 +2,12 @@ import pandas as pd
 from unittest.mock import patch, Mock
 from src.etl.extract import fetch_oscar_data
 
+
 @patch("etl.extract.SESSION.get")
 def test_extract_awards_data_success(mock_get, mock_awards_api_response):
     """
-    Test that, when the awards‐API returns a well‐formed JSON payload, 
-    extract_awards_data() returns a non‐empty DataFrame with exactly the 
+    Test that, when the awards‐API returns a well‐formed JSON payload,
+    extract_awards_data() returns a non‐empty DataFrame with exactly the
     expected columns and correct sample content.
     """
 
@@ -25,6 +26,12 @@ def test_extract_awards_data_success(mock_get, mock_awards_api_response):
     assert isinstance(df, pd.DataFrame)
     assert not df.empty
     # Structure Check
-    assert set(df.columns) == {"film", "year", "wikipedia_url", "oscar_winner", "detail_url"}
+    assert set(df.columns) == {
+        "film",
+        "year",
+        "wikipedia_url",
+        "oscar_winner",
+        "detail_url",
+    }
     # Contenct check
     assert df.iloc[0]["film"] == "Titanic"

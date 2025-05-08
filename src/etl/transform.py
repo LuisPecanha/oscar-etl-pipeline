@@ -11,7 +11,7 @@ UNIT_MULTIPLIERS = {
     "thousand": 1_000,
 }
 
-CPI_REF_YEAR = 2024 # Year until when considering inflation
+CPI_REF_YEAR = 2024  # Year until when considering inflation
 
 
 def parse_budget_value(value: str, conversion_rates: dict) -> int:
@@ -128,22 +128,23 @@ def add_inflation_adjusted_budget(df: pd.DataFrame) -> pd.DataFrame:
         logger.error("CPI for 2024 not found. Skipping inflation adjustment.")
         df["budget_inflation_adjusted"] = df["budget_usd"]
         return df
-    
+
     def adjust(row):
         year = row["year"]
         budget = row["budget_usd"]
-        
+
         if pd.isna(year) or pd.isna(budget) or budget == 0:
             return 0
-        
+
         cpi_year = cpi_rates.get(int(year))
         if not cpi_year or cpi_year == 0:
             return 0
-        
+
         return int(budget * (cpi_2024 / cpi_year))
 
     df["budget_updated"] = df.apply(adjust, axis=1)
     return df
+
 
 def enforce_schema_types(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -161,6 +162,10 @@ def enforce_schema_types(df: pd.DataFrame) -> pd.DataFrame:
     df["oscar_winner"] = df["oscar_winner"].astype(bool)
     df["wikipedia_url"] = df["wikipedia_url"].astype(str)
     df["budget_raw"] = df["budget_raw"].astype(str)
-    df["budget_usd"] = pd.to_numeric(df["budget_usd"], errors="coerce").fillna(0).astype(int)
-    df["budget_updated"] = pd.to_numeric(df["budget_updated"], errors="coerce").fillna(0).astype(int)
+    df["budget_usd"] = (
+        pd.to_numeric(df["budget_usd"], errors="coerce").fillna(0).astype(int)
+    )
+    df["budget_updated"] = (
+        pd.to_numeric(df["budget_updated"], errors="coerce").fillna(0).astype(int)
+    )
     return df
