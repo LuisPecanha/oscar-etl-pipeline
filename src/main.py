@@ -4,6 +4,7 @@ from logging_config import setup_logging
 from etl.extract import extract_awards_data, enrich_with_film_details
 from etl.transform import clean_budget_column, clean_year_column
 from etl.validate import validate_movies
+from etl.load import to_csv
 
 def execute():
     """
@@ -30,9 +31,11 @@ def execute():
     validated_df = validate_movies(df_full)
 
     # Load
-    # Here you would typically load the data into a database or file
-    df.to_csv("../data/oscar_data.csv", index=False)
-    df_full.to_csv("../data/enriched_oscar_data.csv", index=False)
+    logger.info("Loading data...")
+    output_path = to_csv(validated_df)
+
+    logger.info(f"Pipeline completed. Data saved to {output_path}")
+    
 
 if __name__ == "__main__":
     execute()
