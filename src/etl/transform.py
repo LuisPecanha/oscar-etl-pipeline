@@ -144,3 +144,23 @@ def add_inflation_adjusted_budget(df: pd.DataFrame) -> pd.DataFrame:
 
     df["budget_updated"] = df.apply(adjust, axis=1)
     return df
+
+def enforce_schema_types(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Enforce schema types for the DataFrame.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to enforce schema types on.
+
+    Returns:
+        pd.DataFrame: The DataFrame with enforced schema types.
+    """
+    logger.info("Enforcing schema types...")
+    df["film"] = df["film"].astype(str)
+    df["year"] = pd.to_numeric(df["year"], errors="coerce").astype("Int64")
+    df["oscar_winner"] = df["oscar_winner"].astype(bool)
+    df["wikipedia_url"] = df["wikipedia_url"].astype(str)
+    df["budget_raw"] = df["budget_raw"].astype(str)
+    df["budget_usd"] = pd.to_numeric(df["budget_usd"], errors="coerce").fillna(0).astype(int)
+    df["budget_updated"] = pd.to_numeric(df["budget_updated"], errors="coerce").fillna(0).astype(int)
+    return df
