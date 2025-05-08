@@ -12,6 +12,7 @@ logger = logging.getLogger("etl.load")
 
 # Helpers
 
+
 def _project_root() -> Path:
     """
     Get the project root directory.
@@ -25,7 +26,8 @@ def _default_output_dir() -> Path:
     """
     return _project_root() / "data" / "processed"
 
-#retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))
+
+# retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))
 def _atomic_write(df, tmp_path, final_path, **to_csv_kwargs):
     """
     Write the DataFrame to a temporary file and then rename it to the final path.
@@ -34,12 +36,13 @@ def _atomic_write(df, tmp_path, final_path, **to_csv_kwargs):
     df.to_csv(tmp_path, **to_csv_kwargs)
     Path(tmp_path).replace(final_path)
 
+
 def to_csv(
     df: pd.DataFrame,
     output_dir: str | Path | None = None,
     fname_prefix: str = "oscar_movies_cleaned",
     include_index: bool = False,
-    compression: str | None = None
+    compression: str | None = None,
 ) -> Path:
     """
     Write `df` to a timestamped CSV inside *data/processed*.
@@ -89,7 +92,6 @@ def to_csv(
             f"Available: {free / (1024**2):.2f} MB"
         )
 
-
     # Write with atomic
     start = time.time()
     try:
@@ -102,11 +104,12 @@ def to_csv(
         )
     except Exception as e:
         logger.exception(f"Failed to write file for [{out_path}] due to: {e}")
-    
-    
+
     # Final log
     duration = time.time() - start
     size_mb = out_path.stat().st_size / 1e6
-    logger.info(f"Wrote {len(df)} records to {out_path.name} in {duration:.2f}s ({size_mb:.2f} MB)")
-    
+    logger.info(
+        f"Wrote {len(df)} records to {out_path.name} in {duration:.2f}s ({size_mb:.2f} MB)"
+    )
+
     return out_path
