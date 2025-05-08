@@ -27,7 +27,7 @@ def _default_output_dir() -> Path:
     return _project_root() / "data" / "processed"
 
 
-# retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))
 def _atomic_write(df, tmp_path, final_path, **to_csv_kwargs):
     """
     Write the DataFrame to a temporary file and then rename it to the final path.
