@@ -21,12 +21,12 @@ The project follows a layered structure:
 
 1. Build the Docker image:
    ```bash
-   docker build   --build-arg HOST_UID=$(id -u)   --build-arg HOST_GID=$(id -g)   -t oscar-etl .
+   docker build --build-arg HOST_UID=$(id -u) --build-arg HOST_GID=$(id -g) -t oscar-etl .
    ```
 
 2. Run the container using your host UID/GID to avoid file permission issues:
    ```bash
-   docker run --rm -v "$(pwd)/data/processed:/app/data/processed" oscar-etl
+   docker run --rm -v "$(pwd)/data/processed:/app/data/processed" -v "$(pwd)/logs:/app/logs" oscar-etl
    ```
 
 3. The cleaned CSV will be saved to `data/processed/` on your host machine.

@@ -130,7 +130,7 @@ The `load.py` module includes options for customizing the output location, filen
 
 ## Containerization with Docker
 
-To avoid environment-related issues and ensure consistent execution, I containerized the project using Docker. This guarantees reproducibility regardless of the host machine’s Python setup.
+When I tried running the pipeline on another machine, I ran into problems regarding the Python version. So, to avoid environment-related issues and ensure consistent execution, I containerized the project using Docker. This guarantees reproducibility regardless of the host machine’s Python setup.
 
 I configured the container to run the ETL pipeline directly and added a -u "$(id -u):$(id -g)" flag to the docker run command to prevent permission issues when writing output files to the host system.
 
