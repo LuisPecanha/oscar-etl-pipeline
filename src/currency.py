@@ -42,9 +42,9 @@ def get_exchange_rates(base_currency: str = "USD") -> dict:
     url = f"https://api.frankfurter.app/latest?from={base_currency}"
     try:
         logger.info("Fetching rates from Frankfurter.app…")
-        resp = SESSION.get(url, timeout=5)
-        resp.raise_for_status()
-        data = resp.json()
+        response = SESSION.get(url, timeout=5)
+        response.raise_for_status()
+        data = response.json()
         rates_json = data.get("rates", {})
 
         rates = {}

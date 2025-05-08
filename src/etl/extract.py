@@ -41,9 +41,9 @@ def fetch_oscar_data() -> pd.DataFrame:
     base_url = config.api_base_url
 
     try:
-        resp = SESSION.get(base_url, timeout=10)
-        resp.raise_for_status()
-        data = resp.json()
+        response = SESSION.get(base_url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
     except HTTPError as e:
         logger.error(f"HTTP error {e} for URL {base_url}")
         return pd.DataFrame()
