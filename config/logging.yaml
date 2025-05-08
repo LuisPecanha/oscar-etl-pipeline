@@ -5,25 +5,39 @@ formatters:
   simple:
     format: "[%(asctime)s] %(levelname)s %(name)s: %(message)s"
 
+  detailed:
+    format: "[%(asctime)s] %(levelname)s %(name)s (%(filename)s:%(lineno)d): %(message)s"
+
 handlers:
   console:
     class: logging.StreamHandler
     level: INFO
     formatter: simple
     stream: ext://sys.stdout
+  
   file:
     class: logging.FileHandler
     level: DEBUG
     formatter: simple
     filename: logs/etl.log
 
-loggers:
-  "":
-    level: INFO
-    handlers: [console, file]
+  validate_file:
+    class: logging.FileHandler
+    level: WARNING
+    formatter: detailed     # now defined above
+    filename: logs/etl_validate_warnings.log
 
-  "etl":
+root:
+  level: INFO
+  handlers: [console, file]
+
+loggers:
+  etl:
     level: DEBUG
     handlers: [console, file]
     propagate: False
 
+  etl.validate:
+    level: WARNING
+    handlers: [console, validate_file]
+    propagate: False

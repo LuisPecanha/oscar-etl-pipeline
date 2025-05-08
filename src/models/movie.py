@@ -1,31 +1,53 @@
 from pydantic import BaseModel, Field, HttpUrl, validator
 from typing import Optional
 from datetime import datetime
-import re
 
 class Movie(BaseModel):
-    film: str = Field(..., min_length=1)
-    year: int = Field(..., ge=1878, le=datetime.now().year)
-    wikipedia_url: HttpUrl
-    oscar_winner: bool
-    budget_raw: str
-    budget_usd: int = Field(ge=0)
+    """
+    Domain model for a film, with metadata and cleaned budget fields.
+    """
+    film: str = Field(
+        ...,
+        min_length=1,
+        description="Non-blank film title"
+    )
+    year: int = Field(
+        ...,
+        ge=1878,
+        le=datetime.now().year,
+        description="Release year between first motion picture (1878) and current year"
+    )
+    wikipedia_url: HttpUrl = Field(
+        ...,
+        description="URL to the films Wikipedia page"
+    )
+    oscar_winner: bool = Field(
+        ...,
+        description="Flag indicating whether the film won an Oscar"
+    )
+    budget_raw:Optional[str] = Field(
+        None,
+        description="Original budget string as scraped"
+    )
+    budget_usd: int = Field(
+        ...,
+        ge=0,
+        le=10_000_000_000,
+        description="Budget converted to USD; must be between 0 and 10 billion"
+    )
 
     @validator("film")
-    def validate_file_name(cls, v):
+    def validate_film(cls, v: str) -> str:
+        """
+        Strip surrounding whitespace and ensure the title is not empty.
+
+        Raises:
+            ValueError: If the stripped title is an empty string.
+        """
         if not v.strip():
             raise ValueError("film cannot be empty or just whitespace.")
         return v.strip()
-    
-    @validator("budget_raw", pre=True)
-    def validate_budget_raw_format(cls, v):
-        if not v or not isinstance(v, str):
-            return "0"
-        if v.lower().strip() in ["unknown", "n/a"]:
-            return "0"
-        return v.strip()
-    
-    @validator("budget_usd")
-    def validate_usd_budget(cls, v):
-        if v > 10_000_000_000: # No film had this budget
-            raise ValueError(f"budget_usd too large: {v}")
+        
+    class Config:
+        extra = "forbid"
+        validate_by_name = True
