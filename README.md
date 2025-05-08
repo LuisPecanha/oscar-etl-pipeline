@@ -24,7 +24,7 @@ The project follows a layered structure:
    docker build --build-arg HOST_UID=$(id -u) --build-arg HOST_GID=$(id -g) -t oscar-etl .
    ```
 
-2. Run the container using your host UID/GID to avoid file permission issues:
+2. Run the container:
    ```bash
    docker run --rm -v "$(pwd)/data/processed:/app/data/processed" -v "$(pwd)/logs:/app/logs" oscar-etl
    ```
