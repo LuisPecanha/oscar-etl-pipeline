@@ -1,6 +1,6 @@
 import pandas as pd
 from unittest.mock import patch, Mock
-from src.etl.extract import extract_awards_data
+from src.etl.extract import fetch_oscar_data
 
 @patch("etl.extract.SESSION.get")
 def test_extract_awards_data_success(mock_get, mock_awards_api_response):
@@ -18,7 +18,7 @@ def test_extract_awards_data_success(mock_get, mock_awards_api_response):
     mock_get.return_value = mock_response
 
     # Act
-    df = extract_awards_data()
+    df = fetch_oscar_data()
 
     # Assert
     # Sanity Check
