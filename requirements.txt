@@ -4,9 +4,7 @@ pandas
 pydantic
 pyyaml
 pyarrow
-
-# Data validation
-# great_expectations
+tenacity
 
 # Testing
 pytest
